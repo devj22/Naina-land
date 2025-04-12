@@ -1,51 +1,50 @@
+import bcrypt from 'bcrypt';
+import { User, InsertUser } from "@shared/schema";
 import { 
-  users, properties, blogPosts, messages, testimonials,
-  type User, type InsertUser, 
-  type Property, type InsertProperty,
-  type BlogPost, type InsertBlogPost,
+  properties, blogPosts, messages, testimonials,
   type Message, type InsertMessage,
   type Testimonial, type InsertTestimonial
 } from "@shared/schema";
-import bcrypt from 'bcrypt';
 
-export interface IStorage {
-  // User methods
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
-  // Property methods
-  getAllProperties(): Promise<Property[]>;
-  getPropertyById(id: number): Promise<Property | undefined>;
-  getPropertiesByType(type: string): Promise<Property[]>;
-  getFeaturedProperties(): Promise<Property[]>;
-  createProperty(property: InsertProperty): Promise<Property>;
-  updateProperty(id: number, property: Partial<InsertProperty>): Promise<Property | undefined>;
-  deleteProperty(id: number): Promise<boolean>;
-  
-  // Blog methods
-  getAllBlogPosts(): Promise<BlogPost[]>;
-  getBlogPostById(id: number): Promise<BlogPost | undefined>;
-  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
-  updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
-  deleteBlogPost(id: number): Promise<boolean>;
-  
-  // Message methods
-  getAllMessages(): Promise<Message[]>;
-  getMessageById(id: number): Promise<Message | undefined>;
-  createMessage(message: InsertMessage): Promise<Message>;
-  updateMessageReadStatus(id: number, isRead: boolean): Promise<Message | undefined>;
-  deleteMessage(id: number): Promise<boolean>;
-  
-  // Testimonial methods
-  getAllTestimonials(): Promise<Testimonial[]>;
-  getTestimonialById(id: number): Promise<Testimonial | undefined>;
-  createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
-  updateTestimonial(id: number, testimonial: Partial<InsertTestimonial>): Promise<Testimonial | undefined>;
-  deleteTestimonial(id: number): Promise<boolean>;
+// Types
+export interface Property {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  size: number;
+  sizeUnit: string;
+  features: string[];
+  images: string[];
+  videoUrl: string;
+  isFeatured: boolean;
+  propertyType: string;
+  createdAt: Date;
 }
 
-export class MemStorage implements IStorage {
+export interface BlogPost {
+  id: number;
+  title: string;
+  content: string;
+  excerpt: string;
+  author: string;
+  image: string;
+  createdAt: Date;
+}
+
+export interface InsertProperty extends Omit<Property, 'id' | 'createdAt'> {}
+export interface InsertBlogPost extends Omit<BlogPost, 'id' | 'createdAt'> {}
+
+// Storage interface
+interface Storage {
+  getProperties(): Property[];
+  getProperty(id: number): Property | undefined;
+  getBlogs(): BlogPost[];
+  getBlog(id: number): BlogPost | undefined;
+}
+
+export class MemStorage implements Storage {
   private users: Map<number, User>;
   private properties: Map<number, Property>;
   private blogPosts: Map<number, BlogPost>;
@@ -225,8 +224,8 @@ export class MemStorage implements IStorage {
     const id = this.testimonialCurrentId++;
     const testimonial: Testimonial = { 
       ...insertTestimonial, 
-      id, 
-      image: insertTestimonial.image || "" // Ensure image is a string
+      id,
+      image: insertTestimonial.image || null // Ensure image is string | null
     };
     this.testimonials.set(id, testimonial);
     return testimonial;
@@ -250,79 +249,18 @@ export class MemStorage implements IStorage {
     // Sample properties
     const properties: InsertProperty[] = [
       {
-        title: "CIDCO Approved Final Plot for Sale in TPS 10, Panvel – 101 Guntha (FSI 2.5) | Near Navi Mumbai Airport",
-        description: "Own a CIDCO-approved plot in TPS 10, Panvel under NAINA. Final developed plot of 101 Guntha with 2.5 FSI. Located near Navi Mumbai International Airport. Great for investors & developers. Infrastructure by CIDCO under progress. Limited opportunity.",
-        price: 12000000,
-        location: "TPS 10, Panvel (NAINA Development Zone)",
-        size: 254.5,
+        title: "48 Guntha Land in Nadhal, Khalapur ₹6.5 Lakh/Guntha",
+        description: "Presenting a 48 Guntha land parcel for sale in Nadhal, Khalapur at just ₹6.5 lakh per guntha — an excellent opportunity under the MSRDC Smart City Development Plan. Strategically located just 10 km from the Mumbai-Pune Expressway and 23 km from the upcoming Navi Mumbai International Airport, this property offers unbeatable connectivity and immense future value. Surrounded by mega infrastructure projects like the JNPT Chowk Road expansion and the Virar-Alibaug Multimodal Corridor, the land is in close proximity to major residential and commercial zones including Godrej Township, Hiranandani Fortune City, L&T Depot, and SCMS Institute. With clear title, single ownership, and an FSI of 0.15 in an eco-sensitive Matheran buffer zone, this land is perfect for low-density residential plotting, a weekend bungalow, boutique resort, or long-term investment. The MSRDC Smart City plan ensures planned development, which adds to the appreciation potential of this strategically located parcel. Whether you're an investor, developer, or end-user, this land in Khalapur promises strong ROI and green living near one of Maharashtra's fastest-developing corridors.",
+        price: 31200000,
+        location: "Nadhal, Khalapur, Maharashtra",
+        size: 48,
         sizeUnit: "Guntha",
-        features: ["101 Guntha Final Plot under TPS 10", "CIDCO APPROVED"],
-        images: ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"],
-        videoUrl: "https://youtu.be/LBBQJdUt0lA?si=xkusBVhJLBbstf6q",
+        features: ["MSRDC Smart City Zone", "FSI 0.15 (Eco-sensitive zone)", "Clear Title", "Single Owner", "10 km from Mumbai-Pune Expressway", "23 km from Navi Mumbai Airport", "Surrounded by major infrastructure projects"],
+        images: ["https://img.youtube.com/vi/8AB-0F_hTmQ/maxresdefault.jpg"],
+        videoUrl: "https://www.youtube.com/watch?v=8AB-0F_hTmQ&t=17s",
         isFeatured: true,
         propertyType: "Land"
-      },
-      // {
-      //   title: "Fertile Agricultural Land",
-      //   description: "Fertile land suitable for various crops with good water source.",
-      //   price: 9000000,
-      //   location: "Srirangapatna, Mysore",
-      //   size: 2,
-      //   sizeUnit: "Acres",
-      //   features: ["Borewell", "Fertile Soil", "Road Access"],
-      //   images: ["https://images.unsplash.com/photo-1628744404730-5e143358539b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"],
-      //   videoUrl: "https://www.youtube.com/watch?si=QBkMVQVIKhLJcPiw&v=ycRY-EtA_y0&feature=youtu.be",
-      //   isFeatured: false,
-      //   propertyType: "Agricultural"
-      // },
-      // {
-      //   title: "Commercial Land",
-      //   description: "Prime commercial land suitable for business development.",
-      //   price: 35000000,
-      //   location: "Gachibowli, Hyderabad",
-      //   size: 40,
-      //   sizeUnit: "Guntha",
-      //   features: ["Highway Access", "Commercial Zone", "Prime Location"],
-      //   images: ["https://images.unsplash.com/photo-1628624747186-a941c476b7ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"],
-      //   isFeatured: false,
-      //   propertyType: "Commercial"
-      // },
-      // {
-      //   title: "Prime Corner Plot",
-      //   description: "East-facing corner plot in a developing residential area.",
-      //   price: 8500000,
-      //   location: "Sholinganallur, Chennai",
-      //   size: 12,
-      //   sizeUnit: "Guntha",
-      //   features: ["Corner Plot", "East Facing", "Residential Area"],
-      //   images: ["https://images.unsplash.com/photo-1531971589569-0d9370cbe1e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"],
-      //   isFeatured: false,
-      //   propertyType: "Residential"
-      // },
-      // {
-      //   title: "Gated Community Plot",
-      //   description: "Premium plot in a gated community with all amenities.",
-      //   price: 15000000,
-      //   location: "Whitefield, Bangalore",
-      //   size: 15,
-      //   sizeUnit: "Guntha",
-      //   features: ["Gated", "Park View", "24/7 Security"],
-      //   images: ["https://images.unsplash.com/photo-1602941525421-8f8b81d3edbb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"],
-      //   isFeatured: true,
-      //   propertyType: "Residential"
-      // },
-      // {
-      //   title: "Premium Farmland",
-      //   description: "Beautiful farmland with hill view and natural water source.",
-      //   price: 7500000,
-      //   location: "Devanahalli, Bangalore",
-      //   size: 1,
-      //   sizeUnit: "Acres",
-      //   features: ["Water Source", "Hill View", "Farmhouse Permitted"],
-      //   images: ["https://images.unsplash.com/photo-1543746379-c5d6bc868f57?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"],
-      //   isFeatured: false,
-      //   propertyType: "Agricultural"
-      // }
+      }
     ];
 
     // Sample blog posts
@@ -331,139 +269,157 @@ export class MemStorage implements IStorage {
         title: "The Best Time to Buy a Plot in Karjat? Right Now – Here's Why!",
         content: `Karjat, nestled in the lush green belt of the Western Ghats in Maharashtra, has quickly emerged as a favorite among real estate investors and nature lovers alike. Known for its scenic beauty and increasing urban connectivity, this quiet town is now witnessing a steady boom in real estate interest. If you're wondering when the best time to buy a plot in Karjat is, the answer is clear: Right now. Let's dive into the reasons why 2025 might be your golden opportunity.
 
-## Property Prices Are Still Affordable
-
+Property Prices Are Still Affordable
 Compared to neighboring tourist destinations like Lonavala and Alibaug, property rates in Karjat remain relatively low. As of early 2025, Karjat plot rates can start from ₹250 per sq. ft. and average around ₹4,556 per sq. ft., making it one of the most affordable investment destinations in the region. This price range is expected to rise significantly with increasing interest and infrastructure development, which makes now the perfect entry point for buyers.
 
-## Soaring Demand for Second Homes and Rentals
-
+Soaring Demand for Second Homes and Rentals
 As remote work culture grows and urban stress pushes families to seek peaceful weekend getaways, Karjat has seen a surge in demand for second homes. The location's natural tranquility, waterfalls, and trekking trails make it a prime spot for vacation rentals and homestays. This not only offers lifestyle value but also great rental income potential for plot owners who choose to build.
 
-## Improved Connectivity and Infrastructure Expansion
-
+Improved Connectivity and Infrastructure Expansion
 Karjat's connectivity has been a major driver of its real estate growth. With the Karjat-Panvel railway corridor, Mumbai-Pune Expressway access, and ongoing development of road infrastructure, reaching Karjat has never been easier. Proposed developments like the Karjat-Badlapur highway and better metro and train networks will further enhance its accessibility from major cities like Mumbai, Pune, and Navi Mumbai.
 
-## High Return on Investment
-
+High Return on Investment
 Karjat is considered one of the top emerging real estate destinations in Maharashtra. Plots purchased today are expected to appreciate in value significantly over the next few years. This appreciation is driven by growing demand, planned infrastructure, and increasing interest from investors across Mumbai Metropolitan Region (MMR).
 
-## Eco-Friendly and Sustainable Living Options
-
+Eco-Friendly and Sustainable Living Options
 More buyers are prioritizing green living, and Karjat offers a perfect environment to embrace sustainability. Many plot buyers are building eco-homes with features like rainwater harvesting, solar panels, and organic farming—making the area not only attractive but also future-ready.
 
-**Conclusion:**  
-From affordability and future growth to nature-rich surroundings and great connectivity, Karjat has everything a smart investor looks for. With the real estate buzz growing stronger each year, 2025 stands out as the best time to buy a plot in Karjat. Whether you're planning to build a weekend retreat, secure a long-term investment, or simply own a piece of paradise, the time to act is now.
-  `,
-        excerpt: "Learn the essential factors you should evaluate before making a land investment to ensure maximum returns.",
+Conclusion:
+From affordability and future growth to nature-rich surroundings and great connectivity, Karjat has everything a smart investor looks for. With the real estate buzz growing stronger each year, 2025 stands out as the best time to buy a plot in Karjat. Whether you're planning to build a weekend retreat, secure a long-term investment, or simply own a piece of paradise, the time to act is now.`,
+        excerpt: "Learn why 2025 is the perfect time to invest in Karjat's booming real estate market.",
         author: "Arif Lalani",
-        image: "https://images.unsplash.com/photo-1542879379-a2761ec6d9b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"
+        image: "https://images.unsplash.com/photo-1526948531399-320e7e40f0ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&h=800&q=80"
       },
       {
         title: "Don't Wait to Invest in Panvel: Prices Are Rising, and Here's the Proof",
-        content: `
-      ## The Rise of Panvel Real Estate
-      
-      Panvel, once considered a quiet outskirt of Navi Mumbai, is now at the forefront of real estate growth. With the upcoming Navi Mumbai International Airport (NMIA), expanded infrastructure, and seamless connectivity, Panvel property price rise has caught the attention of savvy investors. If you're thinking of investing, waiting might cost you more than you think.
-      
-      ## 1. The Data Doesn't Lie: Panvel Property Price Rise in Numbers
-      
-      Over the past five years, Panvel has experienced a steady uptick in real estate prices. According to property market analytics:
-      
-      - Residential property rates have increased by **30% to 45%** in select nodes.  
-      - Land rates near infrastructure projects have surged by **up to 60%**.  
-      - **CIDCO-approved plots** have witnessed massive appreciation due to clear titles and government backing.  
-      
-      This price movement isn't speculative—it's proof of genuine, demand-driven growth.
-      
-      ## 2. Navi Mumbai International Airport: A Game-Changer
-      
-      The NMIA is not just a transportation project—it's an economic catalyst. As construction progresses rapidly, developers and investors are positioning themselves around the airport's influence zone.
-      
-      Proximity to an international airport has historically boosted property prices in surrounding areas. In Panvel's case, prices are already responding, and they are expected to **double post-commissioning** of NMIA.
-      
-      ## 3. CIDCO Projects and NAINA: Structured Growth, Not Speculation
-      
-      The City and Industrial Development Corporation (CIDCO) has ensured planned urbanization through nodes, clear titles, and robust amenities. Combine that with **NAINA** (Navi Mumbai Airport Influence Notified Area), and you get well-planned zones set for futuristic living.
-      
-      Properties under these frameworks offer **lower legal risks and higher resale value**, further fueling the Panvel property price rise.
-      
-      ## 4. Connectivity That Commands a Premium
-      
-      Panvel boasts a unique convergence of:
-      
-      - **Mumbai-Pune Expressway**  
-      - **Sion-Panvel Expressway**  
-      - **Panvel Railway Station** (Mumbai-Goa Route)  
-      - **Upcoming Mumbai Trans-Harbour Link (MTHL)**  
-      
-      This superior connectivity reduces travel time to South Mumbai, Pune, and upcoming economic hubs, making Panvel ideal for both living and investment.
-      
-      ## 5. Affordability Today, Appreciation Tomorrow
-      
-      Compared to saturated markets like Bandra, Powai, or even Vashi, Panvel remains relatively affordable. A **2BHK apartment that may cost ₹45–60 lakhs today could be valued at ₹80–90 lakhs** in 3–5 years, as demand and development accelerate.
-      
-      This is a rare phase when the prices are still within reach but climbing fast—making now the smartest time to invest.
-      
-      ## 6. Testimonials & Trends from Investors
-      
-      Investors who've bought plots or flats in Panvel just 2-3 years ago are already seeing **ROI upwards of 25%**. Many are now reinvesting in CIDCO-approved layouts and projects near the airport site.
-      
-      Brokers and market analysts are calling Panvel the next **"investment goldmine"**, and the consistent upward trend supports that label.
-      
-      ## Final Thoughts: Don't Regret Not Investing Earlier
-      
-      If you're still contemplating, remember—every booming property location was once an underdog. Panvel is no longer the future—it's the present. The ongoing Panvel property price rise is backed by **data, development, and demand**.
-      
-      Delaying your investment could mean entering at a much higher price point. The best time to plant a tree was 20 years ago—the second-best time is now.
-        `,
+        content: `The Rise of Panvel Real Estate
+
+Panvel, once considered a quiet outskirt of Navi Mumbai, is now at the forefront of real estate growth. With the upcoming Navi Mumbai International Airport (NMIA), expanded infrastructure, and seamless connectivity, Panvel property price rise has caught the attention of savvy investors. If you're thinking of investing, waiting might cost you more than you think.
+
+1. The Data Doesn't Lie: Panvel Property Price Rise in Numbers
+
+Over the past five years, Panvel has experienced a steady uptick in real estate prices. According to property market analytics:
+
+- Residential property rates have increased by 30% to 45% in select nodes
+- Land rates near infrastructure projects have surged by up to 60%
+- CIDCO-approved plots have witnessed massive appreciation due to clear titles and government backing
+
+This price movement isn't speculative—it's proof of genuine, demand-driven growth.
+
+2. Navi Mumbai International Airport: A Game-Changer
+
+The NMIA is not just a transportation project—it's an economic catalyst. As construction progresses rapidly, developers and investors are positioning themselves around the airport's influence zone.
+
+Proximity to an international airport has historically boosted property prices in surrounding areas. In Panvel's case, prices are already responding, and they are expected to double post-commissioning of NMIA.
+
+3. CIDCO Projects and NAINA: Structured Growth, Not Speculation
+
+The City and Industrial Development Corporation (CIDCO) has ensured planned urbanization through nodes, clear titles, and robust amenities. Combine that with NAINA (Navi Mumbai Airport Influence Notified Area), and you get well-planned zones set for futuristic living.
+
+Properties under these frameworks offer lower legal risks and higher resale value, further fueling the Panvel property price rise.
+
+4. Connectivity That Commands a Premium
+
+Panvel boasts a unique convergence of:
+- Mumbai-Pune Expressway
+- Sion-Panvel Expressway
+- Panvel Railway Station (Mumbai-Goa Route)
+- Upcoming Mumbai Trans-Harbour Link (MTHL)
+
+This superior connectivity reduces travel time to South Mumbai, Pune, and upcoming economic hubs, making Panvel ideal for both living and investment.
+
+5. Affordability Today, Appreciation Tomorrow
+
+Compared to saturated markets like Bandra, Powai, or even Vashi, Panvel remains relatively affordable. A 2BHK apartment that may cost ₹45–60 lakhs today could be valued at ₹80–90 lakhs in 3–5 years, as demand and development accelerate.
+
+This is a rare phase when the prices are still within reach but climbing fast—making now the smartest time to invest.
+
+Final Thoughts: Don't Regret Not Investing Earlier
+
+If you're still contemplating, remember—every booming property location was once an underdog. Panvel is no longer the future—it's the present. The ongoing Panvel property price rise is backed by data, development, and demand.
+
+Delaying your investment could mean entering at a much higher price point. The best time to plant a tree was 20 years ago—the second-best time is now.`,
         excerpt: "Explore why Panvel is quickly becoming a top investment hotspot, and how current price trends signal a great time to buy.",
         author: "Arif Lalani",
-        image: "https://images.unsplash.com/photo-1526948531399-320e7e40f0ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80",
-  
-      }
-      ,
-      {
-        title: "Land Value Trends to Watch in 2023",
-        content: "Analysis of current land value trends across major Indian cities, future growth prospects, and recommendations for potential investors.",
-        excerpt: "Explore the emerging trends in land values and discover which regions are experiencing the highest growth rates.",
-        author: "Vikram Singh",
-        image: "https://images.unsplash.com/photo-1594608661623-aa0bd3a69799?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80"
-      }
-    ];
-
-    // Sample testimonials
-    const testimonials: InsertTestimonial[] = [
-      {
-        name: "Rohit Sharma",
-        location: "Navi Mumbai",
-        message: "Nainaland Deals made my dream of owning a plot in Panvel come true. The team was professional, transparent, and very helpful throughout the process.",
-        rating: 5,
-        image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Google_Contacts_icon.svg"
-      },
-      {
-        name: "Priya Desai",
-        location: "Pune",
-        message: "I was nervous about legal issues, but Nainaland Deals handled everything smoothly. I bought land in Khalapur with complete confidence.",
-        rating: 5,
-        image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Google_Contacts_icon.svg"
-      },
-      {
-        name: " Vikram Joshi",
-        location: "Thane",
-        message: "Great experience! The team helped me find a great investment opportunity in Karjat. Highly recommend their services.",
-        rating: 4.5,
-        image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Google_Contacts_icon.svg"
+        image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&h=800&q=80"
       }
     ];
 
     // Add properties
-    properties.forEach(property => this.createProperty(property));
-    
+    properties.forEach(property => {
+      const id = this.propertyCurrentId++;
+      const timestamp = new Date();
+      const newProperty: Property = { 
+        ...property, 
+        id, 
+        createdAt: timestamp,
+        sizeUnit: property.sizeUnit || "",
+        features: property.features || [],
+        images: property.images || [],
+        videoUrl: property.videoUrl || "",
+        isFeatured: property.isFeatured || false
+      };
+      this.properties.set(id, newProperty);
+    });
+
     // Add blog posts
-    blogPosts.forEach(post => this.createBlogPost(post));
-    
-    // Add testimonials
-    testimonials.forEach(testimonial => this.createTestimonial(testimonial));
+    blogPosts.forEach(post => {
+      const id = this.blogPostCurrentId++;
+      const timestamp = new Date();
+      const newPost: BlogPost = { ...post, id, createdAt: timestamp };
+      this.blogPosts.set(id, newPost);
+    });
+
+    // Sample testimonials
+    const sampleTestimonials: InsertTestimonial[] = [
+      {
+        name: "Rajesh Kumar",
+        location: "Mumbai",
+        message: "Nainaland Deals helped me find the perfect plot for my dream home. Their expertise in the local market and transparent approach made the entire process smooth and hassle-free.",
+        rating: 5,
+        image: "https://randomuser.me/api/portraits/men/1.jpg"
+      },
+      {
+        name: "Priya Sharma",
+        location: "Pune",
+        message: "I was looking to invest in land property, and Nainaland Deals provided excellent guidance. They understood my requirements perfectly and found me a great investment opportunity.",
+        rating: 5,
+        image: "https://randomuser.me/api/portraits/women/1.jpg"
+      },
+      {
+        name: "Amit Patel",
+        location: "Navi Mumbai",
+        message: "The team at Nainaland Deals is highly professional and knowledgeable. They helped me navigate through various options and made sure I got the best deal for my investment.",
+        rating: 4,
+        image: "https://randomuser.me/api/portraits/men/2.jpg"
+      }
+    ];
+
+    // Add sample testimonials
+    sampleTestimonials.forEach(testimonial => {
+      const id = this.testimonialCurrentId++;
+      this.testimonials.set(id, { 
+        ...testimonial, 
+        id,
+        image: testimonial.image || null // Ensure image is string | null
+      });
+    });
+  }
+
+  getProperties(): Property[] {
+    return Array.from(this.properties.values());
+  }
+
+  getProperty(id: number): Property | undefined {
+    return this.properties.get(id);
+  }
+
+  getBlogs(): BlogPost[] {
+    return Array.from(this.blogPosts.values());
+  }
+
+  getBlog(id: number): BlogPost | undefined {
+    return this.blogPosts.get(id);
   }
 }
 

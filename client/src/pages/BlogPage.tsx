@@ -153,32 +153,7 @@ From affordability and future growth to nature-rich surroundings and great conne
               
               
               
-              {/* Newsletter */}
-              <div className="mt-16 bg-primary rounded-lg p-8 text-white">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-3">Subscribe to Our Newsletter</h2>
-                    <p className="opacity-90 mb-4">
-                      Stay updated with the latest trends, investment opportunities, and expert advice in land property investment.
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex">
-                      <Input 
-                        type="email" 
-                        placeholder="Your email address" 
-                        className="rounded-r-none text-black"
-                      />
-                      <Button className="rounded-l-none bg-[#FF6B35]">
-                        Subscribe
-                      </Button>
-                    </div>
-                    <p className="text-sm opacity-80 mt-2">
-                      We respect your privacy and will never share your email with third parties.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              
             </>
           )}
         </div>

@@ -6,7 +6,7 @@ const HeroSection = () => {
     <header 
       className="pt-24 bg-cover bg-center h-screen flex items-center relative" 
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1628624747186-a941c476b7ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80')`
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://img.freepik.com/premium-photo/aerial-view-agricultural-landscape-against-sky_1048944-24890237.jpg?w=1800')`
       }}
     >
       <div className="container mx-auto px-4 z-10">
